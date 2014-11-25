@@ -4,7 +4,7 @@
   "description": "NodeJS wrapper for the Kafka REST Proxy",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "nodeunit test"
   },
   "repository": {
     "type": "git",
@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/confluentinc/kafka-rest-node",
   "devDependencies": {
-    "async": "*"
+    "async": "*",
+    "nodeunit": ">0.9.0"
   }
 }
