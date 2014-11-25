@@ -19,5 +19,8 @@
   "bugs": {
     "url": "https://github.com/confluentinc/kafka-rest-node/issues"
   },
-  "homepage": "https://github.com/confluentinc/kafka-rest-node"
+  "homepage": "https://github.com/confluentinc/kafka-rest-node",
+  "devDependencies": {
+    "async": "*"
+  }
 }
