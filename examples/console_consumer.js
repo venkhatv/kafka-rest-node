@@ -19,6 +19,7 @@ var KafkaRest = require("..");
 
 var topicName = process.argv[2];
 var consumerGroup = process.argv[3];
+var messageLimit = process.argv[4];
 
 if (topicName === undefined) {
     console.log("Usage: node console_consumer.js topic [group]");
@@ -29,6 +30,7 @@ if (consumerGroup === undefined)
     consumerGroup = "console-consumer-" + Math.round(Math.random() * 100000);
 
 var kafka = new KafkaRest({"url": "http://localhost:8080"});
+var consumed = 0;
 kafka.consumer(consumerGroup).join(function(err, consumer_instance) {
     if (err) return console.log("Failed to create instance in consumer group: " + err);
 
@@ -41,11 +43,15 @@ kafka.consumer(consumerGroup).join(function(err, consumer_instance) {
             console.log(msgs[i].value.toString('utf8'));
             // Also available: msgs[i].key, msgs[i].partition
         }
+
+        consumed += msgs.length;
+        if (messageLimit !== undefined && consumed >= messageLimit)
+            consumer_instance.shutdown(logShutdown);
     });
     stream.on('error', function(err) {
         console.log("Consumer instance reported an error: " + err);
         console.log("Attempting to shut down consumer instance...");
-        consumer_instance.shutdown();
+        consumer_instance.shutdown(logShutdown);
     });
     stream.on('end', function() {
         console.log("Consumer stream closed.");
@@ -57,3 +63,10 @@ kafka.consumer(consumerGroup).join(function(err, consumer_instance) {
         console.log("Consumer instance closed.");
     });
 });
+
+function logShutdown(err) {
+    if (err)
+        console.log("Error while shutting down: " + err);
+    else
+        console.log("Shutdown cleanly.");
+}
