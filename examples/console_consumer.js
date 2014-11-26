@@ -67,6 +67,13 @@ kafka.consumer(consumerGroup).join(function(err, consumer_instance) {
     consumer_instance.on('end', function() {
         console.log("Consumer instance closed.");
     });
+
+    // Also trigger clean shutdown on Ctrl-C
+    process.on('SIGINT', function() {
+        console.log("Attempting to shut down consumer instance...");
+        consumer_instance.shutdown(logShutdown);
+    });
+
 });
 
 function logShutdown(err) {

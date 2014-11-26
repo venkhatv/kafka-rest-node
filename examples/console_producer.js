@@ -64,12 +64,13 @@ function produceFromInput(cb) {
 
     var outstanding = "";
     stdin.on('readable', function() {
+        if (finishedStdin) return;
         var chunk = stdin.read();
         if (chunk == null) return;
         outstanding += chunk;
         outstanding = processInput(outstanding, cb);
     });
-    stdin.on('end', function() {
+    var endInput = function() {
         finishedStdin = true;
         // Make sure the last line gets processed even if it was only terminated by EOF
         if (outstanding.length > 0 && outstanding[outstanding.length-1] != '\n')
@@ -77,6 +78,13 @@ function produceFromInput(cb) {
         outstanding = processInput(outstanding, cb);
         // Since there may not have been outstanding work, we need to check immediately if it's safe to exit.
         checkSendingComplete(cb);
+    };
+    // Trigger clean exit on stdin EOF or Ctrl-C
+    stdin.on('end', endInput);
+    process.on('SIGINT', function() {
+        // Make sure stdin won't continue reading and keep the process running
+        stdin.pause();
+        endInput();
     });
 }
 
@@ -84,7 +92,7 @@ var num_messages = 0;
 var num_bytes = 0;
 // Splits input by lines into individual messages and passes them to the producer. Tracks stats to print at exit.
 function processInput(buffer, cb) {
-    if (buffer.length == 0) return;
+    if (buffer.length == 0) return buffer;
     var split_char = '\n';
     var lines = buffer.split(split_char);
     // If there are any line splits, the below logic always works, but if there are none we need to detect this and skip
