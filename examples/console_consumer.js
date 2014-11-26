@@ -15,21 +15,26 @@
  */
 "use strict";
 
-var KafkaRest = require("..");
+var KafkaRest = require(".."),
+    argv = require('minimist')(process.argv.slice(2));
 
-var topicName = process.argv[2];
-var consumerGroup = process.argv[3];
-var messageLimit = process.argv[4];
+var api_url = argv.url || "http://localhost:8080";
+var topicName = argv.topic;
+var consumerGroup = argv.group;
+var messageLimit = argv['message-limit'];
+var help = (argv.help || argv.h);
 
-if (topicName === undefined) {
-    console.log("Usage: node console_consumer.js topic [group]");
-    process.exit(1);
+if (help || topicName === undefined) {
+    console.log("Consumes and prints values of messages from a Kafka topic via the REST proxy API wrapper.");
+    console.log();
+    console.log("Usage: node console_consumer.js [--url <api-base-url>] --topic <topic> [--group <consumer-group-name>] [--message-limit <num_messages>]");
+    process.exit(help ? 0 : 1);
 }
 
 if (consumerGroup === undefined)
     consumerGroup = "console-consumer-" + Math.round(Math.random() * 100000);
 
-var kafka = new KafkaRest({"url": "http://localhost:8080"});
+var kafka = new KafkaRest({"url": api_url});
 var consumed = 0;
 kafka.consumer(consumerGroup).join(function(err, consumer_instance) {
     if (err) return console.log("Failed to create instance in consumer group: " + err);

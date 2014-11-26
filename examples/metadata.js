@@ -16,9 +16,20 @@
 "use strict";
 
 var KafkaRest = require('..'),
+    argv = require('minimist')(process.argv.slice(2)),
     async = require('async');
 
-var kafka = new KafkaRest({"url": "http://localhost:8080"});
+var api_url = argv.url || "http://localhost:8080";
+var help = (argv.help || argv.h);
+
+if (help) {
+    console.log("Demonstrates accessing a variety of Kafka cluster metadata via the REST proxy API wrapper.");
+    console.log();
+    console.log("Usage: node metadata.js [--url <api-base-url>]");
+    process.exit(0);
+}
+
+var kafka = new KafkaRest({"url": api_url});
 
 function listBrokers(done) {
     console.log("Listing brokers:");

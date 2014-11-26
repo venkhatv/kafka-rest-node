@@ -16,17 +16,27 @@
 "use strict";
 
 var KafkaRest = require(".."),
-    async = require('async');
+    async = require('async'),
+    argv = require('minimist')(process.argv.slice(2));
 
-var topicName = process.argv[2];
-var partitionId = process.argv[3];
-
-if (topicName === undefined) {
-    console.log("Usage: node console_producer.js topic [partition]");
-    process.exit(1);
+function firstDefined() {
+    for(var i = 0; i < arguments.length; i++)
+        if (arguments[i] !== undefined) return arguments[i];
 }
 
-var kafka = new KafkaRest({"url": "http://localhost:8080"});
+var api_url = argv.url || "http://localhost:8080";
+var topicName = firstDefined(argv.topic, (argv._.length > 0 ? argv._[0] : undefined));
+var partitionId = firstDefined(argv.partition, (argv._.length > 1 ? argv._[1] : undefined));
+var help = (argv.help || argv.h);
+
+if (help || topicName === undefined) {
+    console.log("Produces value-only messages to a Kafka topic or partition via the REST proxy API wrapper.");
+    console.log();
+    console.log("Usage: node console_producer.js [--url <api-base-url>] --topic <topic> [--partition <partition>]");
+    process.exit(help ? 0 : 1);
+}
+
+var kafka = new KafkaRest({"url": api_url});
 
 var target = kafka.topic(topicName);
 if (partitionId)
