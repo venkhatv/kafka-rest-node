@@ -108,6 +108,10 @@ twit.stream('statuses/sample', {'language': 'en'}, function(s) {
 function handleProduceResponse(batch_messages, err, res) {
     messages_acked += batch_messages;
     windowed_acked += batch_messages;
+    if (err) {
+        console.log("Error sending data to specified topic: " + err);
+        shutdown();
+    }
     checkExit();
 }
 
@@ -123,6 +127,7 @@ function checkExit() {
         console.log();
         var finished = Date.now();
         console.log("Converted " + messages_acked + " tweets, dropped last " + consumed.length + " remaining buffered tweets, " + Math.round(messages_acked/((finished-started)/1000)) + " tweets/s");
+        exiting = false;
     }
 }
 
