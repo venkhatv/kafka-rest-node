@@ -42,18 +42,6 @@ var target = kafka.topic(topicName);
 if (partitionId)
     target = target.partition(partitionId);
 
-// Runs initial check to make sure the target (topic or partition) actually exists. This happens automatically on the
-// REST proxy as well, but you may want to check this proactively to ensure no messages will get lost.
-function checkTarget(cb) {
-    console.log("Checking that requested topic/partition exists (" + target.getPath() + ")");
-    target.get(function(err, res) {
-        if (err) {
-            console.log("Something looks wrong with the specified topic/partition: " + err);
-        }
-        cb(err);
-    })
-}
-
 // Handles reading raw stdin
 var finishedStdin = false;
 function produceFromInput(cb) {
@@ -136,4 +124,4 @@ function reportStats(done) {
     done();
 }
 
-async.series([checkTarget, produceFromInput, reportStats]);
+async.series([produceFromInput, reportStats]);
