@@ -24,7 +24,7 @@ function firstDefined() {
         if (arguments[i] !== undefined) return arguments[i];
 }
 
-var api_url = argv.url || "http://localhost:8080";
+var api_url = argv.url || "http://localhost:8082";
 var topicName = firstDefined(argv.topic, (argv._.length > 0 ? argv._[0] : undefined));
 var partitionId = firstDefined(argv.partition, (argv._.length > 1 ? argv._[1] : undefined));
 var help = (argv.help || argv.h);

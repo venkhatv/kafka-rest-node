@@ -30,7 +30,7 @@ var consumer_secret = argv['consumer-secret'] || process.env.TWITTER_CONSUMER_SE
 var access_key = argv['access-key'] || process.env.TWITTER_ACCESS_KEY;
 var access_secret = argv['access-secret'] || process.env.TWITTER_ACCESS_SECRET;
 // Kafka arguments
-var api_url = argv.url || "http://localhost:8080";
+var api_url = argv.url || "http://localhost:8082";
 var topicName = argv.topic;
 // General arguments
 var bufferMessages = argv['message-buffer-size'] || 100; // Number of tweets to buffer before calling produce()

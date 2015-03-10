@@ -18,7 +18,7 @@
 var KafkaRest = require(".."),
     argv = require('minimist')(process.argv.slice(2));
 
-var api_url = argv.url || "http://localhost:8080";
+var api_url = argv.url || "http://localhost:8082";
 var topicName = argv.topic;
 var consumerGroup = argv.group;
 var messageLimit = argv['message-limit'];

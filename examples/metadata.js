@@ -19,7 +19,7 @@ var KafkaRest = require('..'),
     argv = require('minimist')(process.argv.slice(2)),
     async = require('async');
 
-var api_url = argv.url || "http://localhost:8080";
+var api_url = argv.url || "http://localhost:8082";
 var help = (argv.help || argv.h);
 
 if (help) {
