@@ -52,10 +52,10 @@ function listTopics(done) {
         if (err) {
             console("Failed to list topics: " + err);
         } else {
-            for (var i = 0; i < data.length; i++)
-                console.log(data[i].toString() + " (raw: " + JSON.stringify(data[i].raw) + ")");
-            if (data.length > 0)
+           if (data.length > 0)
                 firstTopicName = data[0].name;
+             for (var i = 0; i < data.length; i++)
+                console.log(data[i].toString() + " (raw: " + JSON.stringify(data[i].raw) + ")");
         }
         console.log();
         done(err);

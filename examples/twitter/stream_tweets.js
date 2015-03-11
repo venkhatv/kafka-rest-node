@@ -45,9 +45,9 @@ if (help ||
     console.log();
     console.log("Usage: node stream_tweets.js [--consumer-key <consumer-key>] [--consumer-secret <consumer-secret>] [--access-key <access-key>] [--access-secret <access-secret>]");
     console.log("                             [--url <api-base-url>] --topic <topic>");
-    console.log("                             [--message-buffer-size <num-messages>");
+    console.log("                             [--message-buffer-size <num-messages>]");
     console.log();
-    console.log("You can also specify Twitter credentials via environment variables: TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET, TWITTER_ACCESS_SECRET, TWITTER_ACCESS_SECRET.");
+    console.log("You can also specify Twitter credentials via environment variables: TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET, TWITTER_ACCESS_KEY, TWITTER_ACCESS_SECRET.");
     process.exit(help ? 0 : 1);
 }
 

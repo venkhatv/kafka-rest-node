@@ -25,12 +25,13 @@ var KafkaRest = require("../.."),
 var api_url = argv.url || "http://localhost:8082";
 var topicName = argv.topic;
 var consumerGroup = argv.group;
+var fromBeginning = argv['from-beginning'];
 var help = (argv.help || argv.h);
 
 if (help || topicName === undefined) {
     console.log("Compute and report trending topics in tweets.");
     console.log();
-    console.log("Usage: node trending.js [--url <api-base-url>] --topic <topic> [--group <consumer-group-name>]");
+    console.log("Usage: node trending.js [--url <api-base-url>] --topic <topic> [--group <consumer-group-name>] [--from-beginning]");
     process.exit(help ? 0 : 1);
 }
 
@@ -44,7 +45,11 @@ var report_period = 10000;
 // How much to discount the current weights for each report_period
 var period_discount_rate = .99;
 
-kafka.consumer(consumerGroup).join(function(err, ci) {
+var consumerConfig = {};
+if (fromBeginning) {
+    consumerConfig['auto.offset.reset'] = 'smallest';
+}
+kafka.consumer(consumerGroup).join(consumerConfig, function(err, ci) {
     if (err) return console.log("Failed to create instance in consumer group: " + err);
     consumer_instance = ci;
     var stream = consumer_instance.subscribe(topicName);
@@ -124,7 +129,7 @@ var stopwords = {};
         "she's should shouldn't so some such than that that's the their theirs them themselves then there there's these they " +
         "they'd they'll they're they've this those through to too under until up very was wasn't we we'd we'll we're we've " +
         "were weren't what what's when when's where where's which while who who's whom why why's with won't would wouldn't " +
-        "you you'd you'll you're you've your yours yourself yourselves";
+        "you you'd you'll you're you've your yours yourself yourselves rt";
     var stopwords_list = stopwords_str.split(' ');
     for(var i = 0; i < stopwords_list.length; i++)
         stopwords[stopwords_list[i]] = true;

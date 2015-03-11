@@ -35,6 +35,13 @@ exports.testNormalizeFromArguments = {
 
     // Test formats of a bunch of individual messages
 
+    testNullMessage: function(test) {
+        var result = messages.normalizeFromArguments([null], true),
+            msgs = result[0], cb = result[1];
+        test.strictEqual(msgs.length, 1);
+        assertMessageEquals(test, msgs[0], null, null, null);
+    },
+
     testStringMessage: function(test) {
         var result = messages.normalizeFromArguments([MSG], true),
             msgs = result[0], cb = result[1];
