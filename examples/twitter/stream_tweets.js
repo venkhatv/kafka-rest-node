@@ -35,6 +35,7 @@ var topicName = argv.topic;
 // General arguments
 var bufferMessages = argv['message-buffer-size'] || 100; // Number of tweets to buffer before calling produce()
 var format = argv.format || "avro";
+var filter = argv.filter;
 var help = (argv.help || argv.h);
 
 if (help ||
@@ -48,6 +49,7 @@ if (help ||
     console.log("Usage: node stream_tweets.js [--consumer-key <consumer-key>] [--consumer-secret <consumer-secret>] [--access-key <access-key>] [--access-secret <access-secret>]");
     console.log("                             [--url <api-base-url>] --topic <topic>");
     console.log("                             [--message-buffer-size <num-messages>] [--format <avro|binary>]");
+    console.log("                             [--filter <term>]");
     console.log();
     console.log("You can also specify Twitter credentials via environment variables: TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET, TWITTER_ACCESS_KEY, TWITTER_ACCESS_SECRET.");
     process.exit(help ? 0 : 1);
@@ -81,11 +83,20 @@ var messages_acked = 0;
 var exiting = false;
 // Windowed stats
 var windowed_started = Date.now();
+var windowed_collected = 0;
 var windowed_acked = 0;
 var windowed_period = 10000;
 var windowed_interval = setInterval(reportWindowedRate, windowed_period);
 
-twit.stream('statuses/sample', {'language': 'en'}, function(s) {
+var endpoint, endpoint_opts = {};
+if (filter) {
+    endpoint = 'statuses/filter';
+    endpoint_opts = {'track': filter};
+} else {
+    endpoint = 'statuses/sample';
+    endpoint_opts = {'language': 'en'};
+}
+twit.stream(endpoint, endpoint_opts, function(s) {
     stream = s;
     stream.on('data', function(data) {
         if (exiting) return;
@@ -106,6 +117,7 @@ twit.stream('statuses/sample', {'language': 'en'}, function(s) {
         // If we're using Avro, we can just pass the data in directly. If we're
         // using binary, we need to serialize it to a string ourselves.
         consumed.push(binary ? JSON.stringify(saved_data) : saved_data);
+        windowed_collected++;
         // Send if we've hit our buffering limit. The number of buffered messages balances your tolerance for losing data
         // (if the process/host is killed/dies) against throughput (batching messages into fewer requests makes processing
         // more efficient).
@@ -139,8 +151,9 @@ function handleProduceResponse(batch_messages, err, res) {
 
 function reportWindowedRate() {
     var now = Date.now();
-    console.log("Recorded " + windowed_acked + " tweets in " + Math.round((now-windowed_started)/1000) + "s, " + Math.round(windowed_acked / ((now - windowed_started) / 1000)) + " tweets/s");
+    console.log("Collected " + windowed_collected + " tweets and stored " + windowed_acked + " to Kafka in " + Math.round((now-windowed_started)/1000) + "s, " + Math.round(windowed_collected / ((now - windowed_started) / 1000)) + " tweets/s");
     windowed_started = now;
+    windowed_collected = 0;
     windowed_acked = 0;
 }
 
