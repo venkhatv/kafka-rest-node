@@ -27,14 +27,30 @@ function firstDefined() {
 var api_url = argv.url || "http://localhost:8082";
 var topicName = firstDefined(argv.topic, (argv._.length > 0 ? argv._[0] : undefined));
 var partitionId = firstDefined(argv.partition, (argv._.length > 1 ? argv._[1] : undefined));
+var format = argv.format || 'avro';
+var valueSchemaStr = argv['value-schema'];
 var help = (argv.help || argv.h);
 
 if (help || topicName === undefined) {
     console.log("Produces value-only messages to a Kafka topic or partition via the REST proxy API wrapper.");
     console.log();
-    console.log("Usage: node console_producer.js [--url <api-base-url>] --topic <topic> [--partition <partition>]");
+    console.log("Usage: node console_producer.js [--url <api-base-url>] --topic <topic> [--partition <partition>] [--format <avro|binary>] [--value-schema <schema>]");
     process.exit(help ? 0 : 1);
 }
+
+if (format != 'binary' && format != 'avro') {
+    console.log("Invalid format: " + format);
+    process.exit(1);
+}
+
+if (format == 'binary' && valueSchemaStr) {
+    console.log("Value schema is not valid for binary format.");
+    process.exit(1);
+} else if (format == "avro" && !valueSchemaStr) {
+    console.log("Producing Avro messages requires a schema.");
+    process.exit(1);
+}
+var valueSchema = new KafkaRest.AvroSchema(valueSchemaStr);
 
 var kafka = new KafkaRest({"url": api_url});
 
@@ -45,7 +61,7 @@ if (partitionId)
 // Handles reading raw stdin
 var finishedStdin = false;
 function produceFromInput(cb) {
-    console.log("Ready to write messages. Enter one per line. EOF ends production and exits.")
+    console.log("Ready to write messages. Enter one per line. EOF ends production and exits.");
 
     var stdin = process.stdin;
     stdin.setEncoding('utf8');
@@ -89,7 +105,18 @@ function processInput(buffer, cb) {
     // Note last item is ignored since it is the remainder (or empty)
     for(var i = 0; i < lines.length-1; i++) {
         var line = lines[i];
-        target.produce(line, handleProduceResponse.bind(undefined, cb));
+        if (format == "binary") {
+            target.produce(line, handleProduceResponse.bind(undefined, cb));
+        } else if (format == "avro") {
+            // Avro data should be passed in its JSON-serialized form
+            try {
+                var avro = JSON.parse(line);
+            } catch (e) {
+                console.log("Couldn't parse '" + line + "' as JSON");
+                continue;
+            }
+            target.produce(valueSchema, avro, handleProduceResponse.bind(undefined, cb));
+        }
         // OR with key or partition:
         //target.produce({'partition': 0, 'value': line}, handleProduceResponse.bind(undefined, cb));
         //target.produce({'key': 'console', 'value': line}, handleProduceResponse.bind(undefined, cb));

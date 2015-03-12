@@ -34,22 +34,26 @@ var api_url = argv.url || "http://localhost:8082";
 var topicName = argv.topic;
 // General arguments
 var bufferMessages = argv['message-buffer-size'] || 100; // Number of tweets to buffer before calling produce()
+var format = argv.format || "avro";
 var help = (argv.help || argv.h);
 
 if (help ||
     consumer_key === undefined || consumer_secret === undefined ||
     access_key === undefined || access_secret === undefined ||
-    topicName === undefined)
+    topicName === undefined ||
+    (format != "binary" && format != "avro"))
 {
     console.log("Stream tweets and load them into a Kafka topic.");
     console.log();
     console.log("Usage: node stream_tweets.js [--consumer-key <consumer-key>] [--consumer-secret <consumer-secret>] [--access-key <access-key>] [--access-secret <access-secret>]");
     console.log("                             [--url <api-base-url>] --topic <topic>");
-    console.log("                             [--message-buffer-size <num-messages>]");
+    console.log("                             [--message-buffer-size <num-messages>] [--format <avro|binary>]");
     console.log();
     console.log("You can also specify Twitter credentials via environment variables: TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET, TWITTER_ACCESS_KEY, TWITTER_ACCESS_SECRET.");
     process.exit(help ? 0 : 1);
 }
+
+var binary = (format == "binary");
 
 var twit = new twitter({
     consumer_key: consumer_key,
@@ -60,6 +64,14 @@ var twit = new twitter({
 
 var kafka = new KafkaRest({"url": api_url});
 var target = kafka.topic(topicName);
+var schema = new KafkaRest.AvroSchema({
+    "name": "TweetText",
+    "type": "record",
+    "fields": [
+        { "name": "id", "type": "string" },
+        { "name": "text", "type": "string" }
+    ]
+});
 
 var started = Date.now();
 var stream = null;
@@ -85,15 +97,25 @@ twit.stream('statuses/sample', {'language': 'en'}, function(s) {
         if (data.text === undefined)
             return;
 
-        // Preserve the entire tweet's data serialized as JSON
-        consumed.push(JSON.stringify(data));
-
+        // Extract just the ID and text. We could save more data, but this keeps the schema small and simple for this
+        // example
+        var saved_data = {
+            'id': data.id_str,
+            'text': data.text
+        };
+        // If we're using Avro, we can just pass the data in directly. If we're
+        // using binary, we need to serialize it to a string ourselves.
+        consumed.push(binary ? JSON.stringify(saved_data) : saved_data);
         // Send if we've hit our buffering limit. The number of buffered messages balances your tolerance for losing data
         // (if the process/host is killed/dies) against throughput (batching messages into fewer requests makes processing
         // more efficient).
         if (consumed.length >= bufferMessages) {
             messages_sent += consumed.length;
-            target.produce(consumed, handleProduceResponse.bind(undefined, consumed.length));
+            var responseHandler = handleProduceResponse.bind(undefined, consumed.length);
+            if (binary)
+                target.produce(consumed, responseHandler);
+            else
+                target.produce(schema, consumed, responseHandler);
             consumed = [];
         }
     });

@@ -23,12 +23,13 @@ var topicName = argv.topic;
 var consumerGroup = argv.group;
 var messageLimit = argv['message-limit'];
 var fromBeginning = argv['from-beginning'];
+var format = argv.format || "avro";
 var help = (argv.help || argv.h);
 
-if (help || topicName === undefined) {
+if (help || topicName === undefined || (format != "binary" && format != "avro")) {
     console.log("Consumes and prints values of messages from a Kafka topic via the REST proxy API wrapper.");
     console.log();
-    console.log("Usage: node console_consumer.js [--url <api-base-url>] --topic <topic> [--group <consumer-group-name>] [--message-limit <num_messages>] [--from-beginning]");
+    console.log("Usage: node console_consumer.js [--url <api-base-url>] --topic <topic> [--group <consumer-group-name>] [--message-limit <num_messages>] [--from-beginning] [--format <avro|binary>]");
     process.exit(help ? 0 : 1);
 }
 
@@ -37,7 +38,9 @@ if (consumerGroup === undefined)
 
 var kafka = new KafkaRest({"url": api_url});
 var consumed = 0;
-var consumerConfig = {};
+var consumerConfig = {
+    "format": format
+};
 if (fromBeginning) {
     consumerConfig['auto.offset.reset'] = 'smallest';
 }
@@ -48,10 +51,14 @@ kafka.consumer(consumerGroup).join(consumerConfig, function(err, consumer_instan
     var stream = consumer_instance.subscribe(topicName);
     stream.on('read', function(msgs) {
         for(var i = 0; i < msgs.length; i++) {
-            // Messages keys (if available) and values are decoded from base64 into Buffers. You'll need to decode based
-            // on the .
-            console.log(msgs[i].value.toString('utf8'));
-            // Also available: msgs[i].key, msgs[i].partition
+            if (format == "binary") {
+                // Messages keys (if available) and values are decoded from base64 into Buffers. You'll need to decode based
+                // on whatever serialization format you used. By default here, we just try to decode to text.
+                console.log(msgs[i].value.toString('utf8'));
+                // Also available: msgs[i].key, msgs[i].partition
+            } else {
+                console.log(JSON.stringify(msgs[i].value));
+            }
         }
 
         consumed += msgs.length;

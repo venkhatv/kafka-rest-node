@@ -25,15 +25,18 @@ var KafkaRest = require("../.."),
 var api_url = argv.url || "http://localhost:8082";
 var topicName = argv.topic;
 var consumerGroup = argv.group;
+var format = argv.format || "avro";
 var fromBeginning = argv['from-beginning'];
 var help = (argv.help || argv.h);
 
-if (help || topicName === undefined) {
+if (help || topicName === undefined || (format != "binary" && format != "avro")) {
     console.log("Compute and report trending hashtags in tweets.");
     console.log();
-    console.log("Usage: node trending.js [--url <api-base-url>] --topic <topic> [--group <consumer-group-name>] [--from-beginning]");
+    console.log("Usage: node trending.js [--url <api-base-url>] --topic <topic> [--group <consumer-group-name>] [--from-beginning] [--format <avro|binary>]");
     process.exit(help ? 0 : 1);
 }
+
+var binary = (format == "binary");
 
 if (consumerGroup === undefined)
     consumerGroup = "tweet-trending-consumer-" + Math.round(Math.random() * 100000);
@@ -45,7 +48,7 @@ var report_period = 10000;
 // How much to discount the current weights for each report_period
 var period_discount_rate = .99;
 
-var consumerConfig = {};
+var consumerConfig = { "format" : format };
 if (fromBeginning) {
     consumerConfig['auto.offset.reset'] = 'smallest';
 }
@@ -55,7 +58,7 @@ kafka.consumer(consumerGroup).join(consumerConfig, function(err, ci) {
     var stream = consumer_instance.subscribe(topicName);
     stream.on('read', function(msgs) {
         for(var i = 0; i < msgs.length; i++) {
-            var tweet = JSON.parse(msgs[i].value.toString('utf8'));
+            var tweet = (binary ? JSON.parse(msgs[i].value.toString('utf8')) : msgs[i].value);
             processTweet(tweet);
         }
     });
@@ -95,7 +98,11 @@ var reportInterval = setInterval(function() {
     sorted_terms.sort(function(a,b) { return (a.weight > b.weight ? -1 : (a.weight == b.weight ? 0 : 1)); });
 
     for(var i = 0; i < Math.min(10, sorted_terms.length); i++) {
-        console.log("" + i + ". " + sorted_terms[i].name + " \t(" + sorted_terms[i].weight + ")");
+        var line = "" + i + ". " + sorted_terms[i].name;
+        for(var s = 0; s < (50-sorted_terms[i].name.length); s++)
+            line += ' ';
+        line +=  "(" + sorted_terms[i].weight + ")";
+        console.log(line);
     }
     console.log();
 }, report_period);
