@@ -14,7 +14,7 @@
     "kafka",
     "REST"
   ],
-  "author": "",
+  "author": "Confluent Inc.",
   "license": "Apache-2",
   "bugs": {
     "url": "https://github.com/confluentinc/kafka-rest-node/issues"
