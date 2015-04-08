@@ -40,7 +40,7 @@ things simple):
     kafka.brokers.list(function(err, brokers) {
         for(var i = 0; i < brokers.length; i++)
             console.log(brokers[i].toString());
-    }
+    });
 
 Objects generated from API responses will have a field `raw` where you can get
 at the raw response data. For the brokers, `brokers[i].raw` would just be a
