@@ -125,8 +125,8 @@ Here are a few examples showing these features:
 
     // With Avro data:
 
-    var userIdSchema = new kafka.AvroSchema("int");
-    var userInfoSchema = new kafka.AvroSchema({
+    var userIdSchema = new KafkaRest.AvroSchema("int");
+    var userInfoSchema = new KafkaRest.AvroSchema({
         "name": "UserInfo",
         "type": "record",
         "fields": [
