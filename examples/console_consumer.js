@@ -49,7 +49,7 @@ kafka.consumer(consumerGroup).join(consumerConfig, function(err, consumer_instan
 
     console.log("Consumer instance initialized: " + consumer_instance.toString());
     var stream = consumer_instance.subscribe(topicName);
-    stream.on('read', function(msgs) {
+    stream.on('data', function(msgs) {
         for(var i = 0; i < msgs.length; i++) {
             if (format == "binary") {
                 // Messages keys (if available) and values are decoded from base64 into Buffers. You'll need to decode based
