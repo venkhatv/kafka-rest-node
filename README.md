@@ -167,7 +167,7 @@ will be created. You can then subscribe to a topic, resulting in a
 `ConsumerStream`, and setup event handlers:
 
     var stream = consumer_instance.subscribe('my-topic')
-    stream.on('read', function(msgs) {
+    stream.on('data', function(msgs) {
         for(var i = 0; i < msgs.length; i++)
             console.log("Got a message: key=" + msgs[i].key + " value=" + msgs[i].value + " partition=" + msgs[i].partition);
     });

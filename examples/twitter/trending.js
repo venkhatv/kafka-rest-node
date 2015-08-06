@@ -56,7 +56,7 @@ kafka.consumer(consumerGroup).join(consumerConfig, function(err, ci) {
     if (err) return console.log("Failed to create instance in consumer group: " + err);
     consumer_instance = ci;
     var stream = consumer_instance.subscribe(topicName);
-    stream.on('read', function(msgs) {
+    stream.on('data', function(msgs) {
         for(var i = 0; i < msgs.length; i++) {
             var tweet = (binary ? JSON.parse(msgs[i].value.toString('utf8')) : msgs[i].value);
             processTweet(tweet);
