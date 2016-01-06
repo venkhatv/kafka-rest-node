@@ -67,7 +67,7 @@ the path to and don't want to do API calls on the intermediate resources
 (i.e. get a single partition, but don't look up topic metadata):
 
     // The complete version makes the resource hierarchy clear
-    kafka.topics.topic('test').partitions().partition(0);
+    kafka.topics.topic('test').partitions.partition(0);
     // Or use the shorter version. Under the hood they do the same thing, so you
     // can use whichever is clearer based on context
     kafka.topic('test').partition(0);
