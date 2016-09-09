@@ -16,9 +16,8 @@ The only required dependency is `async`. However, some additional libraries are
 required to run the examples and are included as devDependencies.
 
 Next, make sure you have Kafka, the Schema Registry (if using Avro), and the
-Kafka REST Proxy running. The [Confluent Quickstart](http://confluent.io/docs/current/quickstart.html) and
-[REST Proxy](http://confluent.io/docs/current/kafka-rest/docs/intro.html#installation)
-documentation explains how to do this step-by-step.
+Kafka REST Proxy running. The Confluent Quickstart and REST Proxy
+[documentation](http://docs.confluent.io) explains how to do this step-by-step.
 
 API
 ---
