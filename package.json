@@ -1,6 +1,6 @@
 {
   "name": "kafka-rest",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "NodeJS wrapper for the Kafka REST Proxy",
   "main": "index.js",
   "scripts": {
