@@ -5,6 +5,14 @@ kafka-rest is a node.js library for the Kafka REST Proxy. It provides a thin
 wrapper around the REST API, providing a more convenient interface for accessing
 cluster metadata and producing and consuming Avro and binary data.
 
+**NOTE**: This library was written to demonstrate how to create a language-specific
+wrapper around the REST Proxy. It is no longer maintained or kept up to date (e.g.
+the REST Proxy has a v2 API that is now recommended, but support has not been added
+to this wrapper library). Since this library was created, better JavaScript clients
+have been developed that do not require the REST Proxy. In particular,
+https://github.com/Blizzard/node-rdkafka, which wraps the librdkafka C client is
+a good choice and actively maintained.
+
 Getting Started
 ---------------
 
