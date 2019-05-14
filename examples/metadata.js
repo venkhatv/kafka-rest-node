@@ -13,11 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 "use strict";
+
+//Please use node > 7.6 for running this example, as code below uses async, await.
 
 var KafkaRest = require('..'),
     argv = require('minimist')(process.argv.slice(2)),
     async = require('async');
+    argv = {
+        url: "https://skiff-api.dev.saas.nutanix.com",
+        format:'binary',
+        group:"ds_case_consumer_group",
+        consumer:"ds_case_consumer",
+        topic: "skiff-case-events",
+        // http://skiff-api.dev.saas.nutanix.com/consumers/ds_case_consumer_group/instances/ds_case_consumer
+    };
+    
 
 var api_url = argv.url || "http://localhost:8082";
 var help = (argv.help || argv.h);
@@ -31,7 +43,7 @@ if (help) {
 
 var kafka = new KafkaRest({"url": api_url});
 
-function listBrokers(done) {
+async function listBrokers(done) {
     console.log("Listing brokers:");
     kafka.brokers.list(function (err, data) {
         if (err) {
@@ -43,6 +55,15 @@ function listBrokers(done) {
         console.log();
         done(err);
     });
+    try {
+        const data = await kafka.brokers.list();
+        console.log('\n', 'Via Promise');
+        for (var i = 0; i < data.length; i++)
+        console.log(data[i].toString() + " (raw: " + JSON.stringify(data[i].raw) + ")");
+    } catch(err) {
+        console.log("Failed trying to list brokers: " + err);
+    }
+    
 }
 
 var firstTopicName = null;
@@ -118,4 +139,4 @@ function getSingleTopicPartition(done) {
     });
 }
 
-async.series([listBrokers, listTopics, getSingleTopic, listTopicPartitions, getSingleTopicPartition]);
+async.series([listBrokers, /* listTopics, getSingleTopic, listTopicPartitions, getSingleTopicPartition */]);
