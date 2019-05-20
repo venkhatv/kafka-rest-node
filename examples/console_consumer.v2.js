@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Confluent Inc.
+ * Copyright 2019 Nutanix Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,10 @@ var KafkaRest = require(".."),
     argv = {
         url: "https://skiff-api.dev.saas.nutanix.com",
         format:'binary',
-        group:"ds_case_consumer_group",
+        topic: "venk-case",
+        group:"venk_case_consumer_group",
         // consumer:"ds_case_consumer",
-        topic: "skiff-case-events",
+        // topic: "skiff-case-events",
         // http://skiff-api.dev.saas.nutanix.com/consumers/ds_case_consumer_group/instances/ds_case_consumer
     };
     
