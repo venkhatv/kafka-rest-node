@@ -191,8 +191,8 @@ will be created. You can then subscribe to a topic, resulting in a
         console.log("Something broke: " + err);
     });
 
-    // For v2 api. requestDelay in ms implies the polling interval time. 
-    // E.g. 60000, Every 1 minute stream will hit the get records api in rest proxy.
+    // For v2 api. 
+    // requestDelay : 60000, in ms implies the polling interval time. After every 1 minute, stream will hit the rest proxy for new data.
     var stream = consumer_instance.subscription({ topics: ['my-topic1', 'my-topic2']}, { requestDelay: 60000}).then(function(stream) {
         stream.on('data', function(msgs) {
         for(var i = 0; i < msgs.length; i++)
