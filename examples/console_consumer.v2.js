@@ -17,16 +17,6 @@
 
 var KafkaRest = require(".."),
     argv = require('minimist')(process.argv.slice(2));
-
-    argv = {
-        url: "https://skiff-api.dev.saas.nutanix.com",
-        format:'binary',
-        topic: "venk-case",
-        group:"venk_case_consumer_group",
-        // consumer:"ds_case_consumer",
-        // topic: "skiff-case-events",
-        // http://skiff-api.dev.saas.nutanix.com/consumers/ds_case_consumer_group/instances/ds_case_consumer
-    };
     
 var api_url = argv.url || "http://localhost:8082";
 var topicName = argv.topic;
@@ -49,11 +39,15 @@ if (consumerGroup === undefined)
 var kafka = new KafkaRest({"url": api_url, version: 2});
 var consumed = 0;
 var consumerConfig = {
-    "name": "ds_case_consumer" + Math.random(),
+    "name": "test-consumer-name",
     "format": format,
     "auto.offset.reset": "earliest",
 	"auto.commit.enable": "true"
 };
+/** Update this to add more topics to subscirption*/
+var subscriptionsTopics= { topics: [topicName]};
+/** requestDelay indicated the polling interval time. E.g. 10*1000 in ms, polls kafka rest proxy for data every 10s */
+var subscriptionOptions = {requestDelay: 1000*10};
 if (fromBeginning) {
     consumerConfig['auto.offset.reset'] = 'smallest';
 }
@@ -64,7 +58,7 @@ kafka.consumer(consumerGroup).join(consumerConfig, async function(err, consumer_
     console.log("Consumer instance initialized: " + consumer_instance.toString());
     var stream;
     try {
-        stream = await consumer_instance.subscription({ topics: [topicName]}, {requestDelay: 1000*10})
+        stream = await consumer_instance.subscription(subscriptionsTopics, subscriptionOptions)
 
         stream.on('data', function(msgs) {
             for(var i = 0; i < msgs.length; i++) {
@@ -95,10 +89,6 @@ kafka.consumer(consumerGroup).join(consumerConfig, async function(err, consumer_
         });
         console.log("Subscribed Topics: " + topicsObj.topics.join());
         
-        // setTimeout(() => {
-        //     var topicsObj = await consumer_instance.cancelSubscription();
-        //     console.log("Subscribed Topics: " + topicsObj.topics.join());
-        // }, 30000)
         
         // Events are also emitted by the parent consumer_instance, so you can either consume individual streams separately
         // or multiple streams with one callback. Here we'll just demonstrate the 'end' event.
@@ -119,88 +109,6 @@ kafka.consumer(consumerGroup).join(consumerConfig, async function(err, consumer_
 });
 
     
-/*kafka.consumer(consumerGroup).join(consumerConfig, function(err, consumer_instance) {
-    if (err) return console.log("Failed to create instance in consumer group: " + err);
-
-    console.log("Consumer instance initialized: " + consumer_instance.toString());
-    var stream;
-    consumer_instance.subscription({ topics: [topicName]}, {requestDelay: 1000*30}, function(err, response){
-        if (err) return console.log("Failed to subscribe " + err);
-        if(!response){
-            return;
-        }
-        stream = response;
-        stream.on('data', function(msgs) {
-            for(var i = 0; i < msgs.length; i++) {
-                if (format == "binary") {
-                    // Messages keys (if available) and values are decoded from base64 into Buffers. You'll need to decode based
-                    // on whatever serialization format you used. By default here, we just try to decode to text.
-                    console.log(msgs[i].value.toString('utf8'));
-                    // Also available: msgs[i].key, msgs[i].partition
-                } else {
-                    console.log(JSON.stringify(msgs[i].value));
-                }
-            }
-    
-            consumed += msgs.length;
-            if (messageLimit !== undefined && consumed >= messageLimit)
-                consumer_instance.shutdown(logShutdown);
-        });
-        stream.on('error', function(err) {
-            console.log("Consumer instance reported an error: " + err);
-            console.log("Attempting to shut down consumer instance...");
-            consumer_instance.shutdown(logShutdown);
-        });
-        stream.on('end', function() {
-            console.log("Consumer stream closed.");
-        });
-        
-        
-        // setTimeout(function(){
-        //     stream.shutdown(function(err, resp) {
-        //         console.log("Stream has been shut");
-        //     })
-        // }, 10000 );
-        
-        
-    
-    });
-   /*  setTimeout(function(){
-
-        consumer_instance.getSubscriptionDetails(function(err, topicsObj) {
-            if(err){
-                console.log("Consumer instance reported an error: " + err);
-            }
-            console.log("Subscribed Topics: " + topicsObj.topics.join());
-        })
-        
-    }, 5000);
-
-    setTimeout(function(){
-
-        consumer_instance.cancelSubscription(function(err, response) {
-            if(err){
-                console.log("Consumer instance reported an error: " + err);
-            }
-            console.log("Canceled  Subscription and streams");
-        })
-        
-    }, 10000);
-    
-    // Events are also emitted by the parent consumer_instance, so you can either consume individual streams separately
-    // or multiple streams with one callback. Here we'll just demonstrate the 'end' event.
-    consumer_instance.on('end', function() {
-        console.log("Consumer instance closed.");
-    });
-
-    // Also trigger clean shutdown on Ctrl-C
-    process.on('SIGINT', function() {
-        console.log("Attempting to shut down consumer instance...");
-        consumer_instance.shutdown(logShutdown);
-    });
-
-});*/
-
 function logShutdown(err) {
     if (err)
         console.log("Error while shutting down: " + err);
