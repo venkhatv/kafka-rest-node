@@ -17,7 +17,7 @@
 
 var KafkaRest = require(".."),
     argv = require('minimist')(process.argv.slice(2));
-    
+
 var api_url = argv.url || "http://localhost:8082";
 var topicName = argv.topic;
 var consumerGroup = argv.group;
@@ -36,18 +36,25 @@ if (help || topicName === undefined || (format != "binary" && format != "avro"))
 if (consumerGroup === undefined)
     consumerGroup = "console-consumer-" + Math.round(Math.random() * 100000);
 
-var kafka = new KafkaRest({"url": api_url, version: 2});
+var kafka = new KafkaRest({
+    "url": api_url,
+    version: 2
+});
 var consumed = 0;
 var consumerConfig = {
     "name": "test-consumer-name",
     "format": format,
     "auto.offset.reset": "earliest",
-	"auto.commit.enable": "true"
+    "auto.commit.enable": "true"
 };
 /** Update this to add more topics to subscirption*/
-var subscriptionsTopics= { topics: [topicName]};
+var subscriptionsTopics = {
+    topics: [topicName]
+};
 /** requestDelay indicated the polling interval time. E.g. 10*1000 in ms, polls kafka rest proxy for data every 10s */
-var subscriptionOptions = {requestDelay: 1000*10};
+var subscriptionOptions = {
+    requestDelay: 1000 * 10
+};
 if (fromBeginning) {
     consumerConfig['auto.offset.reset'] = 'smallest';
 }
@@ -61,7 +68,7 @@ kafka.consumer(consumerGroup).join(consumerConfig, async function(err, consumer_
         stream = await consumer_instance.subscription(subscriptionsTopics, subscriptionOptions)
 
         stream.on('data', function(msgs) {
-            for(var i = 0; i < msgs.length; i++) {
+            for (var i = 0; i < msgs.length; i++) {
                 if (format == "binary") {
                     // Messages keys (if available) and values are decoded from base64 into Buffers. You'll need to decode based
                     // on whatever serialization format you used. By default here, we just try to decode to text.
@@ -84,12 +91,14 @@ kafka.consumer(consumerGroup).join(consumerConfig, async function(err, consumer_
         stream.on('end', function() {
             console.log("Consumer stream closed.");
         });
-        var topicsObj = await consumer_instance.getSubscription( (err,result) => {
-            console.log("Subscribed Topics: " + result.topics.join());
-        });
+        var topicsObj = await consumer_instance.getSubscription(
+            (err, result) => {
+                console.log("Subscribed Topics: " + result.topics.join());
+            }
+        );
         console.log("Subscribed Topics: " + topicsObj.topics.join());
-        
-        
+
+
         // Events are also emitted by the parent consumer_instance, so you can either consume individual streams separately
         // or multiple streams with one callback. Here we'll just demonstrate the 'end' event.
         consumer_instance.on('end', function() {
@@ -101,14 +110,14 @@ kafka.consumer(consumerGroup).join(consumerConfig, async function(err, consumer_
             console.log("Attempting to shut down consumer instance...");
             consumer_instance.shutdown(logShutdown);
         });
-    } catch(err) {
-        console.log('Failed '+err);
+    } catch (err) {
+        console.log('Failed ' + err);
     }
 
-    
+
 });
 
-    
+
 function logShutdown(err) {
     if (err)
         console.log("Error while shutting down: " + err);
