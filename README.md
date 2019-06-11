@@ -5,10 +5,11 @@ kafka-rest is a node.js library for the Kafka REST Proxy. It provides a thin
 wrapper around the REST API, providing a more convenient interface for accessing
 cluster metadata and producing and consuming Avro and binary data.
 
+This library supports v1 and v2 version of apis for Kafka REST proxy.
+Refer https://docs.confluent.io/current/kafka-rest/api.html for apis available in v1 and v2 rest proxy.
+
 **NOTE**: This library was written to demonstrate how to create a language-specific
-wrapper around the REST Proxy. It is no longer maintained or kept up to date (e.g.
-the REST Proxy has a v2 API that is now recommended, but support has not been added
-to this wrapper library). Since this library was created, better JavaScript clients
+wrapper around the REST Proxy. If you do not wish to use rest proxy, many JavaScript clients
 have been developed that do not require the REST Proxy. In particular,
 https://github.com/Blizzard/node-rdkafka, which wraps the librdkafka C client is
 a good choice and actively maintained.
@@ -40,7 +41,7 @@ with the server:
 
 The API mirrors the REST API closely: there are resources for Brokers, Topics,
 Partitions, and Consumers, and these are available in the `KafkaRest`
-object. For example, to get a list of brokers (we'll skip error checking to keep
+object. All API methods support both promises and callback approach. For example, to get a list of brokers (we'll skip error checking to keep
 things simple):
 
     // kafka.brokers is a Brokers instance, list() returns a list of Broker instances
@@ -48,6 +49,13 @@ things simple):
         for(var i = 0; i < brokers.length; i++)
             console.log(brokers[i].toString());
     });
+
+    // APIs return a promise. You can process the promise according to your requirements.
+    var brokers = kafka.brokers.list().then(function(brokers) {
+        for(var i = 0; i < brokers.length; i++)
+            console.log(brokers[i].toString());
+    }).catch(console.log);
+    
 
 Objects generated from API responses will have a field `raw` where you can get
 at the raw response data. For the brokers, `brokers[i].raw` would just be a
@@ -172,7 +180,8 @@ specifying some configuration options (passed directly to the API call):
 The group doesn't have to exist yet -- if you use a new consumer group name, it
 will be created. You can then subscribe to a topic, resulting in a
 `ConsumerStream`, and setup event handlers:
-
+    
+    // For v1 api
     var stream = consumer_instance.subscribe('my-topic')
     stream.on('data', function(msgs) {
         for(var i = 0; i < msgs.length; i++)
@@ -181,6 +190,19 @@ will be created. You can then subscribe to a topic, resulting in a
     stream.on('error', function(err) {
         console.log("Something broke: " + err);
     });
+
+    // For v2 api. 
+    // requestDelay : 60000, in ms implies the polling interval time. After every 1 minute, stream will hit the rest proxy for new data.
+    var stream = consumer_instance.subscription({ topics: ['my-topic1', 'my-topic2']}, { requestDelay: 60000}).then(function(stream) {
+        stream.on('data', function(msgs) {
+        for(var i = 0; i < msgs.length; i++)
+            console.log("Got a message: key=" + msgs[i].key + " value=" + msgs[i].value + " partition=" + msgs[i].partition);
+        });
+        stream.on('error', function(err) {
+            console.log("Something broke: " + err);
+        });
+    }
+    
 
 The exact type for each messages key/value depends on the data format you're
 reading. Binary data will have been decoded from its base64 representation into
@@ -204,6 +226,8 @@ A few examples are included in the `examples/` directory:
   to a Kafka topic.
 * `console_consumer.js` - Consumes a Kafka topic and writes each message to
   stdout.
+* `console_consumer.v2.js` - Consumes a Kafka topic and writes each message to
+  stdout using the v2 apis.
 * `twitter/stream_tweets.js` - Uses Twitter's API to get a realtime feed of
   tweets which it produces to a Kafka topic.
 * `twitter/trending.js` - Uses the tweet data produced by the previous example

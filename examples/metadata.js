@@ -17,7 +17,7 @@
 
 var KafkaRest = require('..'),
     argv = require('minimist')(process.argv.slice(2)),
-    async = require('async');
+    async = require('async'); 
 
 var api_url = argv.url || "http://localhost:8082";
 var help = (argv.help || argv.h);
@@ -40,8 +40,14 @@ function listBrokers(done) {
             for (var i = 0; i < data.length; i++)
                 console.log(data[i].toString() + " (raw: " + JSON.stringify(data[i].raw) + ")");
         }
-        console.log();
         done(err);
+    });
+    const data = await kafka.brokers.list().then(function(data){
+        console.log('\n', 'Via Promise');
+        for (var i = 0; i < data.length; i++)
+            console.log(data[i].toString() + " (raw: " + JSON.stringify(data[i].raw) + ")");
+    }).catch(function(err) {
+        console.log("Failed trying to list brokers: " + err);
     });
 }
 
