@@ -29,7 +29,7 @@ var help = argv.help || argv.h;
 if (
     help ||
     topicName === undefined ||
-    (format != "binary" && format != "avro")
+    (format != "binary" && format != "avro" && format != "json")
 ) {
     console.log(
         "Consumes and prints values of messages from a Kafka topic via" +
@@ -39,7 +39,7 @@ if (
     console.log(
         "Usage: node console_consumer.js [--url <api-base-url>] --topic <topic>" +
         "[--message-limit <num_messages>]" +
-        "[--from-beginning] [--format <avro|binary>]"
+        "[--from-beginning] [--format <avro|binary|json>]"
     );
 
     process.exit(help ? 0 : 1);
@@ -63,9 +63,9 @@ var consumerConfig = {
 var subscribedTopics = {
     topics: [topicName]
 };
-/** 
- * requestDelay indicated the polling interval time. 
- * E.g. 10*1000 in ms, polls kafka rest proxy for data every 10s 
+/**
+ * requestDelay indicated the polling interval time.
+ * E.g. 10*1000 in ms, polls kafka rest proxy for data every 10s
  */
 var subscriptionOptions = {
     requestDelay: 1000 * 10
@@ -121,11 +121,11 @@ kafka
             });
             console.log("Subscribed Topics: " + topicsObj.topics.join());
 
-            /** 
+            /**
              * Events are also emitted by the parent consumer_instance, so you
              * can either consume individual streams separately or multiple
              * streams with one callback. Here we'll just demonstrate the
-             * 'end' event. 
+             * 'end' event.
              */
             consumer_instance.on("end", function() {
                 console.log("Consumer instance closed.");
