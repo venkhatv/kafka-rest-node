@@ -37,8 +37,8 @@ if (
     );
     console.log();
     console.log(
-        "Usage: node console_consumer.js [--url <api-base-url>] --topic <topic>" +
-        "[--message-limit <num_messages>]" +
+        "Usage: node console_consumer.v2.js [--url <api-base-url>] --topic <topic>" +
+        "[--message-limit <num_messages>]" + "[--group <group>]" +
         "[--from-beginning] [--format <avro|binary|json>]"
     );
 
@@ -46,7 +46,7 @@ if (
 }
 
 if (consumerGroup === undefined)
-    consumerGroup = "console-consumer-" + Math.round(Math.random() * 100000);
+    consumerGroup = "console-consumer";
 
 var kafka = new KafkaRest({
     url: api_url,
