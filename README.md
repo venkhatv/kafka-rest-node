@@ -36,7 +36,7 @@ with the server:
 
     var KafkaRest = require('kafka-rest');
     var kafka = new KafkaRest({ 'url': 'http://localhost:8082' });
-
+Other properties such as version, headers, requestOptions are supported in the above constructor.
 ### Metadata
 
 The API mirrors the REST API closely: there are resources for Brokers, Topics,
@@ -55,7 +55,7 @@ things simple):
         for(var i = 0; i < brokers.length; i++)
             console.log(brokers[i].toString());
     }).catch(console.log);
-    
+
 
 Objects generated from API responses will have a field `raw` where you can get
 at the raw response data. For the brokers, `brokers[i].raw` would just be a
@@ -180,7 +180,7 @@ specifying some configuration options (passed directly to the API call):
 The group doesn't have to exist yet -- if you use a new consumer group name, it
 will be created. You can then subscribe to a topic, resulting in a
 `ConsumerStream`, and setup event handlers:
-    
+
     // For v1 api
     var stream = consumer_instance.subscribe('my-topic')
     stream.on('data', function(msgs) {
@@ -191,7 +191,7 @@ will be created. You can then subscribe to a topic, resulting in a
         console.log("Something broke: " + err);
     });
 
-    // For v2 api. 
+    // For v2 api.
     // requestDelay : 60000, in ms implies the polling interval time. After every 1 minute, stream will hit the rest proxy for new data.
     var stream = consumer_instance.subscription({ topics: ['my-topic1', 'my-topic2']}, { requestDelay: 60000}).then(function(stream) {
         stream.on('data', function(msgs) {
@@ -202,7 +202,7 @@ will be created. You can then subscribe to a topic, resulting in a
             console.log("Something broke: " + err);
         });
     }
-    
+
 
 The exact type for each messages key/value depends on the data format you're
 reading. Binary data will have been decoded from its base64 representation into
